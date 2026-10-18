@@ -4,6 +4,10 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASS}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maxLifetime: 30000
+      idleTimeout: 10000
+      connectionTimeout: 20000
 
   jpa:
     database-platform: org.hibernate.dialect.MariaDBDialect
