@@ -140,6 +140,7 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         // Rutas públicas (Visitantes y Autenticación)
+                        .requestMatchers("/").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/categorias/**", "/api/especialidades/**").permitAll()
