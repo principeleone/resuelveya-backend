@@ -2,8 +2,8 @@ spring:
   application:
     name: resuelve-api
 
-  profiles:
-    active: dev  # por defecto usas local
+  #profiles:
+    #active: dev  # por defecto usas local
 
   jpa:
     open-in-view: false
