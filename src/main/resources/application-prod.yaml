@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://srv1311.hstgr.io:3306/u282889809_ResuelveYA?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: ${DB_URL}
     username: ${DB_USER}
     password: ${DB_PASS}
     driver-class-name: com.mysql.cj.jdbc.Driver
