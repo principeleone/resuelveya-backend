@@ -5,6 +5,7 @@ spring:
     password: ${DB_PASS}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
+      maximumPoolSize: 5
       maxLifetime: 30000
       idleTimeout: 10000
       connectionTimeout: 20000
