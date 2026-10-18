@@ -414,6 +414,88 @@ Permite a usuarios registrados ver datos de contacto (teléfono, email), método
 
 ---
 
+---
+
+## 📲 8. Solicitudes de Servicio (Móvil / Web)
+
+### 8.1. Solicitar un servicio
+Permite a un cliente solicitar un servicio a un técnico.
+- **Método:** `POST`
+- **Ruta:** `/api/v1/solicitudes`
+- **Permisos:** Requiere rol `CLIENTE`
+
+**Body (Request):**
+```json
+{
+  "servicioId": 10,
+  "tecnicoId": 5,
+  "descripcion": "Fuga de agua en el lavadero de la cocina.",
+  "direccionAtencion": "Av. Benavides 1234, Dpto 301, Surco",
+  "latitud": -12.1298,
+  "longitud": -77.0282,
+  "fechaProgramada": "2026-10-20T10:00:00",
+  "precioAcordado": 80.00
+}
+```
+
+---
+
+### 8.2. Listar mis solicitudes (Cliente)
+- **Método:** `GET`
+- **Ruta:** `/api/v1/solicitudes/cliente?estado=PENDIENTE` (parámetro `estado` opcional)
+- **Permisos:** Requiere rol `CLIENTE`
+
+---
+
+### 8.3. Bandeja de solicitudes entrantes (Técnico / Proveedor)
+- **Método:** `GET`
+- **Ruta:** `/api/v1/solicitudes/tecnico?estado=PENDIENTE` (parámetro `estado` opcional)
+- **Permisos:** Requiere rol `TECNICO`
+
+---
+
+### 8.4. Ver detalle de una solicitud
+- **Método:** `GET`
+- **Ruta:** `/api/v1/solicitudes/{id}`
+- **Permisos:** Autenticado (Cliente emisor, Técnico destinatario o Admin)
+
+---
+
+### 8.5. Aceptar solicitud (Técnico / Proveedor)
+- **Método:** `PATCH`
+- **Ruta:** `/api/v1/solicitudes/{id}/aceptar`
+- **Permisos:** Requiere rol `TECNICO` (solo el técnico asignado)
+
+---
+
+### 8.6. Rechazar solicitud (Técnico / Proveedor)
+- **Método:** `PATCH`
+- **Ruta:** `/api/v1/solicitudes/{id}/rechazar`
+- **Permisos:** Requiere rol `TECNICO` (solo el técnico asignado)
+
+**Body (Request - Opcional):**
+```json
+{
+  "motivo": "Sin disponibilidad en la fecha y hora seleccionada."
+}
+```
+
+---
+
+### 8.7. Cancelar solicitud (Cliente)
+- **Método:** `PATCH`
+- **Ruta:** `/api/v1/solicitudes/{id}/cancelar`
+- **Permisos:** Requiere rol `CLIENTE` (solo el cliente solicitante)
+
+---
+
+### 8.8. Completar / Finalizar servicio
+- **Método:** `PATCH`
+- **Ruta:** `/api/v1/solicitudes/{id}/completar`
+- **Permisos:** Autenticado (Cliente o Técnico involucrado)
+
+---
+
 ## 📊 Matriz de Permisos
 
 | Endpoint | Método | Rol Permitido |
@@ -429,4 +511,13 @@ Permite a usuarios registrados ver datos de contacto (teléfono, email), método
 | `/api/v1/resenias/{id}` | PUT | `ROLE_CLIENTE` (Autor) |
 | `/api/v1/perfil/**` | GET, PUT | `ROLE_CLIENTE`, `ROLE_TECNICO`, `ROLE_ADMIN` |
 | `/api/v1/tecnicos/{id}/completo` | GET | `ROLE_CLIENTE`, `ROLE_TECNICO`, `ROLE_ADMIN` |
+| `/api/v1/solicitudes` | POST | `ROLE_CLIENTE` |
+| `/api/v1/solicitudes/cliente/**` | GET | `ROLE_CLIENTE` |
+| `/api/v1/solicitudes/tecnico/**` | GET | `ROLE_TECNICO` |
+| `/api/v1/solicitudes/{id}/aceptar` | PATCH | `ROLE_TECNICO` |
+| `/api/v1/solicitudes/{id}/rechazar` | PATCH | `ROLE_TECNICO` |
+| `/api/v1/solicitudes/{id}/cancelar` | PATCH | `ROLE_CLIENTE` |
+| `/api/v1/solicitudes/{id}/completar`| PATCH | `ROLE_CLIENTE`, `ROLE_TECNICO` |
+| `/api/v1/solicitudes/{id}` | GET | `ROLE_CLIENTE`, `ROLE_TECNICO`, `ROLE_ADMIN` |
+
 
