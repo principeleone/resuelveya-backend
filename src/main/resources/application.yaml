@@ -17,13 +17,13 @@ security:
     expiration: ${JWT_EXPIRATION:3600000}
 
 server:
-    port: 8080
+  port: ${PORT:8080}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,metrics
+        include: health,metrics, mappings
   endpoint:
     health:
       show-details:always
