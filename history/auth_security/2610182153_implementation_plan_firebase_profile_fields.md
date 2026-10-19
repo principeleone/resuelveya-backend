@@ -1,7 +1,7 @@
 ---
 module: auth_security
 type: implementation_plan
-status: in_progress
+status: done
 related_task: 2610182153
 created: 2610182153
 ---

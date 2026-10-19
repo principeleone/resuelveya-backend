@@ -94,10 +94,18 @@ Si el usuario no existe en la base de datos, se registra automáticamente con el
 ```json
 {
   "firebaseToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "rol": "CLIENTE"
+  "rol": "CLIENTE",
+  "nombre": "Carlos Gómez",
+  "telefono": "987654321",
+  "direccion": "Av. Las Flores 123",
+  "ciudad": "Lima"
 }
 ```
-> **Nota:** `rol` es opcional. Solo se usa si el usuario es nuevo y necesita registrarse. Valores: `CLIENTE` (por defecto) o `TECNICO`.
+> **Nota:** Todos los campos salvo `firebaseToken` son opcionales:
+> - `rol`: `CLIENTE` (por defecto) o `TECNICO`.
+> - `nombre`: Nombre del usuario (si no se envía, se toma el nombre configurado en Firebase o el prefijo del correo).
+> - `telefono`, `direccion`, `ciudad`: Datos del perfil que se guardan directamente en MySQL al registrarse o completarse.
+
 
 **Response (200 OK):**
 ```json
