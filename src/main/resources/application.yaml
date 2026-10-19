@@ -19,6 +19,8 @@ security:
 firebase:
   config:
     path: ${FIREBASE_CONFIG_PATH:}
+  credentials:
+    json: ${FIREBASE_CREDENTIALS_JSON:}
 
 server:
   port: ${PORT:8080}
