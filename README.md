@@ -83,6 +83,42 @@ Permite el registro público seleccionando el rol (`CLIENTE` o `TECNICO`).
 
 ---
 
+### 1.3. Iniciar sesión con Firebase (App Móvil)
+Permite a la app móvil autenticarse usando Firebase Auth (Google Sign-In, Email, etc.) y obtener un token JWT de ResuelveYa.
+Si el usuario no existe en la base de datos, se registra automáticamente con el rol indicado (`CLIENTE` por defecto).
+- **Método:** `POST`
+- **Ruta:** `/api/v1/auth/firebase-login`
+- **Permisos:** Público (Sin autenticación)
+
+**Body (Request):**
+```json
+{
+  "firebaseToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "rol": "CLIENTE"
+}
+```
+> **Nota:** `rol` es opcional. Solo se usa si el usuario es nuevo y necesita registrarse. Valores: `CLIENTE` (por defecto) o `TECNICO`.
+
+**Response (200 OK):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "tipo": "Bearer",
+  "expiresIn": 3600000,
+  "email": "carlos@gmail.com",
+  "rol": "CLIENTE",
+  "id": 15,
+  "nombre": "Carlos Gómez",
+  "telefono": null
+}
+```
+
+**Configuración del servidor:**
+- Variable de entorno `FIREBASE_CONFIG_PATH` apuntando al archivo `serviceAccountKey.json` de Firebase.
+- O colocar el archivo `firebase-service-account.json` en `src/main/resources/`.
+
+---
+
 ## 🔍 2. Catálogo Público y Búsqueda (Visitantes)
 
 ### 2.1. Búsqueda pública de servicios
