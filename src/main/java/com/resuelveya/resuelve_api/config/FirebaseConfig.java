@@ -9,8 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 @Configuration
 public class FirebaseConfig {
@@ -19,6 +22,9 @@ public class FirebaseConfig {
 
     @Value("${firebase.config.path:}")
     private String firebaseConfigPath;
+
+    @Value("${firebase.credentials.json:}")
+    private String firebaseCredentialsJson;
 
     @PostConstruct
     public void init() {
@@ -48,7 +54,21 @@ public class FirebaseConfig {
     }
 
     private InputStream resolveServiceAccount() {
-        // Prioridad 1: ruta explícita del archivo vía propiedad / variable de entorno
+        // Prioridad 1: Contenido JSON directo vía variable de entorno (Ideal para Railway, Heroku, Render)
+        if (firebaseCredentialsJson != null && !firebaseCredentialsJson.isBlank()) {
+            try {
+                log.info("Firebase: Cargando credenciales desde variable FIREBASE_CREDENTIALS_JSON.");
+                String trimmed = firebaseCredentialsJson.trim();
+                byte[] bytes = trimmed.startsWith("{")
+                        ? trimmed.getBytes(StandardCharsets.UTF_8)
+                        : Base64.getDecoder().decode(trimmed);
+                return new ByteArrayInputStream(bytes);
+            } catch (Exception exception) {
+                log.warn("Firebase: No se pudo decodificar FIREBASE_CREDENTIALS_JSON: {}", exception.getMessage());
+            }
+        }
+
+        // Prioridad 2: Ruta de archivo explícita vía propiedad / variable de entorno
         if (firebaseConfigPath != null && !firebaseConfigPath.isBlank()) {
             try {
                 log.info("Firebase: Cargando credenciales desde ruta explícita: {}", firebaseConfigPath);
@@ -58,7 +78,7 @@ public class FirebaseConfig {
             }
         }
 
-        // Prioridad 2: recurso en el classpath
+        // Prioridad 3: Recurso en el classpath (para desarrollo local)
         InputStream classpathStream = getClass().getClassLoader()
                 .getResourceAsStream("firebase-service-account.json");
         if (classpathStream != null) {
@@ -69,3 +89,4 @@ public class FirebaseConfig {
         return null;
     }
 }
+
