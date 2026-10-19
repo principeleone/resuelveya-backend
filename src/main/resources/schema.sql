@@ -76,6 +76,27 @@ CREATE TABLE IF NOT EXISTS resenia (
     CONSTRAINT uk_resenia_cliente_servicio UNIQUE (cliente_id, servicio_id)
 );
 
+-- 7. Tabla Solicitud de Servicio
+CREATE TABLE IF NOT EXISTS solicitud_servicio (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    cliente_id BIGINT NOT NULL,
+    tecnico_id BIGINT NOT NULL,
+    servicio_id BIGINT,
+    estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
+    descripcion VARCHAR(1000) NOT NULL,
+    direccion_atencion VARCHAR(255) NOT NULL,
+    latitud DOUBLE,
+    longitud DOUBLE,
+    fecha_programada DATETIME,
+    precio_acordado DECIMAL(10,2),
+    motivo_cancelacion VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT fk_solicitud_cliente FOREIGN KEY (cliente_id) REFERENCES cliente(usuario_id) ON DELETE CASCADE,
+    CONSTRAINT fk_solicitud_tecnico FOREIGN KEY (tecnico_id) REFERENCES tecnico(usuario_id) ON DELETE CASCADE,
+    CONSTRAINT fk_solicitud_servicio FOREIGN KEY (servicio_id) REFERENCES servicio(id) ON DELETE SET NULL
+);
+
 -- Sincronización retroactiva: asegurar filas hijas para usuarios existentes
 INSERT IGNORE INTO cliente (usuario_id)
 SELECT id FROM usuario WHERE rol = 'CLIENTE';

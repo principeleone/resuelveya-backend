@@ -1,5 +1,6 @@
 package com.resuelveya.resuelve_api.security.domain.service.impl;
 
+import com.google.firebase.auth.FirebaseToken;
 import com.resuelveya.resuelve_api.business.api.dto.usuario.UsuarioRequestDTO;
 import com.resuelveya.resuelve_api.business.api.dto.usuario.UsuarioResponseDTO;
 import com.resuelveya.resuelve_api.business.api.exception.RecursoDuplicadoException;
@@ -10,9 +11,12 @@ import com.resuelveya.resuelve_api.business.data.entity.enums.Rol;
 import com.resuelveya.resuelve_api.business.data.repository.ClienteRepository;
 import com.resuelveya.resuelve_api.business.data.repository.TecnicoRepository;
 import com.resuelveya.resuelve_api.business.data.repository.UsuarioRepository;
+import com.resuelveya.resuelve_api.security.api.dto.FirebaseLoginRequestDto;
 import com.resuelveya.resuelve_api.security.api.dto.LoginRequestDto;
 import com.resuelveya.resuelve_api.security.api.dto.LoginResponseDto;
 import com.resuelveya.resuelve_api.security.domain.service.AuthService;
+import com.resuelveya.resuelve_api.security.domain.service.CustomUserDetailsService;
+import com.resuelveya.resuelve_api.security.domain.service.FirebaseService;
 import com.resuelveya.resuelve_api.security.domain.service.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,6 +25,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -32,6 +38,8 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final FirebaseService firebaseService;
+    private final CustomUserDetailsService customUserDetailsService;
 
     public AuthServiceImpl(
             UsuarioRepository usuarioRepository,
@@ -39,7 +47,9 @@ public class AuthServiceImpl implements AuthService {
             TecnicoRepository tecnicoRepository,
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
-            JwtService jwtService
+            JwtService jwtService,
+            FirebaseService firebaseService,
+            CustomUserDetailsService customUserDetailsService
     ) {
         this.usuarioRepository = usuarioRepository;
         this.clienteRepository = clienteRepository;
@@ -47,6 +57,8 @@ public class AuthServiceImpl implements AuthService {
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.firebaseService = firebaseService;
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     @Override
@@ -134,6 +146,109 @@ public class AuthServiceImpl implements AuthService {
                 userDetails.getUsername(), rol,
                 id, nombre, telefono
         );
+    }
+
+    @Override
+    public LoginResponseDto loginConFirebase(FirebaseLoginRequestDto requestDto) {
+        FirebaseToken decodedToken = firebaseService.verifyIdToken(requestDto.firebaseToken());
+
+        String email = normalizarEmail(decodedToken.getEmail());
+        String nombre = requestDto.nombre() != null && !requestDto.nombre().isBlank()
+                ? requestDto.nombre().trim()
+                : (decodedToken.getName() != null ? decodedToken.getName() : email);
+        String fotoUrl = decodedToken.getPicture();
+
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
+                .orElseGet(() -> registrarUsuarioDesdeFirebase(email, nombre, fotoUrl, requestDto));
+
+        // Actualizar datos si el usuario ya existía pero envía datos complementarios nuevos
+        boolean modificado = false;
+        if (fotoUrl != null && (usuario.getFotoUrl() == null || usuario.getFotoUrl().isBlank())) {
+            usuario.setFotoUrl(fotoUrl);
+            modificado = true;
+        }
+        if (requestDto.nombre() != null && !requestDto.nombre().isBlank() && (usuario.getNombre() == null || usuario.getNombre().isBlank() || usuario.getNombre().equals(email))) {
+            usuario.setNombre(requestDto.nombre().trim());
+            modificado = true;
+        }
+        if (requestDto.telefono() != null && !requestDto.telefono().isBlank() && (usuario.getTelefono() == null || usuario.getTelefono().isBlank())) {
+            usuario.setTelefono(requestDto.telefono().trim());
+            modificado = true;
+        }
+        if (requestDto.ciudad() != null && !requestDto.ciudad().isBlank() && (usuario.getCiudad() == null || usuario.getCiudad().isBlank())) {
+            usuario.setCiudad(requestDto.ciudad().trim());
+            modificado = true;
+        }
+        if (usuario instanceof Cliente cliente && requestDto.direccion() != null && !requestDto.direccion().isBlank()) {
+            if (cliente.getDireccion() == null || cliente.getDireccion().isBlank()) {
+                cliente.setDireccion(requestDto.direccion().trim());
+                modificado = true;
+            }
+        }
+
+        if (modificado) {
+            usuarioRepository.save(usuario);
+        }
+
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(usuario.getEmail());
+        String token = jwtService.generarToken(userDetails);
+
+        return new LoginResponseDto(
+                token, "Bearer", jwtService.obtenerTiempoExpiracion(),
+                usuario.getEmail(), usuario.getRol(),
+                usuario.getId(), usuario.getNombre(), usuario.getTelefono()
+        );
+    }
+
+    private Usuario registrarUsuarioDesdeFirebase(String email, String nombre, String fotoUrl, FirebaseLoginRequestDto requestDto) {
+        Rol rol = requestDto.rol() != null ? requestDto.rol() : Rol.CLIENTE;
+        String placeholderPassword = passwordEncoder.encode(UUID.randomUUID().toString());
+        String telefono = requestDto.telefono() != null && !requestDto.telefono().isBlank() ? requestDto.telefono().trim() : null;
+        String ciudad = requestDto.ciudad() != null && !requestDto.ciudad().isBlank() ? requestDto.ciudad().trim() : null;
+        String direccion = requestDto.direccion() != null && !requestDto.direccion().isBlank() ? requestDto.direccion().trim() : null;
+
+        return switch (rol) {
+            case TECNICO -> {
+                Tecnico tecnico = new Tecnico();
+                tecnico.setNombre(nombre);
+                tecnico.setEmail(email);
+                tecnico.setPassword(placeholderPassword);
+                tecnico.setRol(Rol.TECNICO);
+                tecnico.setTelefono(telefono);
+                tecnico.setCiudad(ciudad);
+                tecnico.setFotoUrl(fotoUrl);
+                tecnico.setAniosExperiencia(0);
+                tecnico.setCalificacionPromedio(0.0);
+                Tecnico guardado = tecnicoRepository.saveAndFlush(tecnico);
+                tecnicoRepository.registrarFilaTecnicoSiNoExiste(guardado.getId());
+                yield guardado;
+            }
+            case CLIENTE -> {
+                Cliente cliente = new Cliente();
+                cliente.setNombre(nombre);
+                cliente.setEmail(email);
+                cliente.setPassword(placeholderPassword);
+                cliente.setRol(Rol.CLIENTE);
+                cliente.setTelefono(telefono);
+                cliente.setCiudad(ciudad);
+                cliente.setDireccion(direccion);
+                cliente.setFotoUrl(fotoUrl);
+                Cliente guardado = clienteRepository.saveAndFlush(cliente);
+                clienteRepository.registrarFilaClienteSiNoExiste(guardado.getId());
+                yield guardado;
+            }
+            default -> {
+                Usuario admin = new Usuario();
+                admin.setNombre(nombre);
+                admin.setEmail(email);
+                admin.setPassword(placeholderPassword);
+                admin.setRol(Rol.ADMIN);
+                admin.setTelefono(telefono);
+                admin.setCiudad(ciudad);
+                admin.setFotoUrl(fotoUrl);
+                yield usuarioRepository.saveAndFlush(admin);
+            }
+        };
     }
 
     private String normalizarEmail(String email) {

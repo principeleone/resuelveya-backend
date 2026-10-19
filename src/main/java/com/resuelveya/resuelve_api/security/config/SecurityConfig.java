@@ -160,6 +160,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/resenias/**").hasRole("CLIENTE")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/resenias/**").hasRole("CLIENTE")
 
+                        // Rutas de Solicitudes de Servicio
+                        .requestMatchers(HttpMethod.POST, "/api/v1/solicitudes").hasRole("CLIENTE")
+                        .requestMatchers("/api/v1/solicitudes/cliente/**").hasRole("CLIENTE")
+                        .requestMatchers("/api/v1/solicitudes/tecnico/**").hasRole("TECNICO")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/solicitudes/*/aceptar").hasRole("TECNICO")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/solicitudes/*/rechazar").hasRole("TECNICO")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/solicitudes/*/cancelar").hasRole("CLIENTE")
+                        .requestMatchers("/api/v1/solicitudes/**").authenticated()
+
                         // Rutas para usuarios autenticados (Perfil, Detalle Técnico Completo)
                         .requestMatchers("/api/v1/perfil/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/tecnicos/*/completo").authenticated()

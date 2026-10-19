@@ -83,6 +83,50 @@ Permite el registro público seleccionando el rol (`CLIENTE` o `TECNICO`).
 
 ---
 
+### 1.3. Iniciar sesión con Firebase (App Móvil)
+Permite a la app móvil autenticarse usando Firebase Auth (Google Sign-In, Email, etc.) y obtener un token JWT de ResuelveYa.
+Si el usuario no existe en la base de datos, se registra automáticamente con el rol indicado (`CLIENTE` por defecto).
+- **Método:** `POST`
+- **Ruta:** `/api/v1/auth/firebase-login`
+- **Permisos:** Público (Sin autenticación)
+
+**Body (Request):**
+```json
+{
+  "firebaseToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "rol": "CLIENTE",
+  "nombre": "Carlos Gómez",
+  "telefono": "987654321",
+  "direccion": "Av. Las Flores 123",
+  "ciudad": "Lima"
+}
+```
+> **Nota:** Todos los campos salvo `firebaseToken` son opcionales:
+> - `rol`: `CLIENTE` (por defecto) o `TECNICO`.
+> - `nombre`: Nombre del usuario (si no se envía, se toma el nombre configurado en Firebase o el prefijo del correo).
+> - `telefono`, `direccion`, `ciudad`: Datos del perfil que se guardan directamente en MySQL al registrarse o completarse.
+
+
+**Response (200 OK):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "tipo": "Bearer",
+  "expiresIn": 3600000,
+  "email": "carlos@gmail.com",
+  "rol": "CLIENTE",
+  "id": 15,
+  "nombre": "Carlos Gómez",
+  "telefono": null
+}
+```
+
+**Configuración del servidor:**
+- Variable de entorno `FIREBASE_CONFIG_PATH` apuntando al archivo `serviceAccountKey.json` de Firebase.
+- O colocar el archivo `firebase-service-account.json` en `src/main/resources/`.
+
+---
+
 ## 🔍 2. Catálogo Público y Búsqueda (Visitantes)
 
 ### 2.1. Búsqueda pública de servicios
@@ -414,6 +458,88 @@ Permite a usuarios registrados ver datos de contacto (teléfono, email), método
 
 ---
 
+---
+
+## 📲 8. Solicitudes de Servicio (Móvil / Web)
+
+### 8.1. Solicitar un servicio
+Permite a un cliente solicitar un servicio a un técnico.
+- **Método:** `POST`
+- **Ruta:** `/api/v1/solicitudes`
+- **Permisos:** Requiere rol `CLIENTE`
+
+**Body (Request):**
+```json
+{
+  "servicioId": 10,
+  "tecnicoId": 5,
+  "descripcion": "Fuga de agua en el lavadero de la cocina.",
+  "direccionAtencion": "Av. Benavides 1234, Dpto 301, Surco",
+  "latitud": -12.1298,
+  "longitud": -77.0282,
+  "fechaProgramada": "2026-10-20T10:00:00",
+  "precioAcordado": 80.00
+}
+```
+
+---
+
+### 8.2. Listar mis solicitudes (Cliente)
+- **Método:** `GET`
+- **Ruta:** `/api/v1/solicitudes/cliente?estado=PENDIENTE` (parámetro `estado` opcional)
+- **Permisos:** Requiere rol `CLIENTE`
+
+---
+
+### 8.3. Bandeja de solicitudes entrantes (Técnico / Proveedor)
+- **Método:** `GET`
+- **Ruta:** `/api/v1/solicitudes/tecnico?estado=PENDIENTE` (parámetro `estado` opcional)
+- **Permisos:** Requiere rol `TECNICO`
+
+---
+
+### 8.4. Ver detalle de una solicitud
+- **Método:** `GET`
+- **Ruta:** `/api/v1/solicitudes/{id}`
+- **Permisos:** Autenticado (Cliente emisor, Técnico destinatario o Admin)
+
+---
+
+### 8.5. Aceptar solicitud (Técnico / Proveedor)
+- **Método:** `PATCH`
+- **Ruta:** `/api/v1/solicitudes/{id}/aceptar`
+- **Permisos:** Requiere rol `TECNICO` (solo el técnico asignado)
+
+---
+
+### 8.6. Rechazar solicitud (Técnico / Proveedor)
+- **Método:** `PATCH`
+- **Ruta:** `/api/v1/solicitudes/{id}/rechazar`
+- **Permisos:** Requiere rol `TECNICO` (solo el técnico asignado)
+
+**Body (Request - Opcional):**
+```json
+{
+  "motivo": "Sin disponibilidad en la fecha y hora seleccionada."
+}
+```
+
+---
+
+### 8.7. Cancelar solicitud (Cliente)
+- **Método:** `PATCH`
+- **Ruta:** `/api/v1/solicitudes/{id}/cancelar`
+- **Permisos:** Requiere rol `CLIENTE` (solo el cliente solicitante)
+
+---
+
+### 8.8. Completar / Finalizar servicio
+- **Método:** `PATCH`
+- **Ruta:** `/api/v1/solicitudes/{id}/completar`
+- **Permisos:** Autenticado (Cliente o Técnico involucrado)
+
+---
+
 ## 📊 Matriz de Permisos
 
 | Endpoint | Método | Rol Permitido |
@@ -429,4 +555,13 @@ Permite a usuarios registrados ver datos de contacto (teléfono, email), método
 | `/api/v1/resenias/{id}` | PUT | `ROLE_CLIENTE` (Autor) |
 | `/api/v1/perfil/**` | GET, PUT | `ROLE_CLIENTE`, `ROLE_TECNICO`, `ROLE_ADMIN` |
 | `/api/v1/tecnicos/{id}/completo` | GET | `ROLE_CLIENTE`, `ROLE_TECNICO`, `ROLE_ADMIN` |
+| `/api/v1/solicitudes` | POST | `ROLE_CLIENTE` |
+| `/api/v1/solicitudes/cliente/**` | GET | `ROLE_CLIENTE` |
+| `/api/v1/solicitudes/tecnico/**` | GET | `ROLE_TECNICO` |
+| `/api/v1/solicitudes/{id}/aceptar` | PATCH | `ROLE_TECNICO` |
+| `/api/v1/solicitudes/{id}/rechazar` | PATCH | `ROLE_TECNICO` |
+| `/api/v1/solicitudes/{id}/cancelar` | PATCH | `ROLE_CLIENTE` |
+| `/api/v1/solicitudes/{id}/completar`| PATCH | `ROLE_CLIENTE`, `ROLE_TECNICO` |
+| `/api/v1/solicitudes/{id}` | GET | `ROLE_CLIENTE`, `ROLE_TECNICO`, `ROLE_ADMIN` |
+
 
