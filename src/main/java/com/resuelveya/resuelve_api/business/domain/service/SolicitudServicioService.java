@@ -19,6 +19,8 @@ public interface SolicitudServicioService {
 
     SolicitudResponseDto aceptarSolicitud(String emailTecnico, Long solicitudId);
 
+    SolicitudResponseDto iniciarSolicitud(String emailTecnico, Long solicitudId);
+
     SolicitudResponseDto rechazarSolicitud(String emailTecnico, Long solicitudId, RechazarSolicitudRequestDto requestDto);
 
     SolicitudResponseDto cancelarSolicitud(String emailCliente, Long solicitudId, RechazarSolicitudRequestDto requestDto);

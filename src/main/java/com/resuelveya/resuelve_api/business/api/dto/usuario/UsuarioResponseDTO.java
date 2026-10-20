@@ -16,4 +16,7 @@ public record UsuarioResponseDTO(
         Double longitud,
         Double calificacionPromedio
 ) {
+    public String getCorreo() {
+        return email;
+    }
 }
