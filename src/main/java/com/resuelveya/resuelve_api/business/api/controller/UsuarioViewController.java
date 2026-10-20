@@ -24,7 +24,7 @@ public class UsuarioViewController {
 
     @GetMapping("/nuevo")
     public String registrarUsuarios(Model model) {
-        model.addAttribute("usuarioForm",new UsuarioRequestDTO(null, null, null, null,null));
+        model.addAttribute("usuarioForm",new UsuarioRequestDTO(null, null, null, null, null, null, null, null));
         model.addAttribute("usuarios", usuarioRepository.findAll());
         return "usuarios"; // busca usuarios.html en templates/
     }
