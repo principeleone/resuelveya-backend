@@ -20,7 +20,11 @@ public record FirebaseLoginRequestDto(
         String direccion,
 
         @Size(max = 100, message = "La ciudad no debe superar los 100 caracteres")
-        String ciudad
+        String ciudad,
+
+        Double latitud,
+
+        Double longitud
 ) {
 }
 

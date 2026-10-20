@@ -23,9 +23,16 @@ public record UsuarioRequestDTO (
     String password,
 
 
-    @Size(max = 9,message = "El telefono no debe superar los 9 caracteres")
+    @Size(max = 20, message = "El teléfono no debe superar los 20 caracteres")
     String telefono,
 
     @NotNull(message = "El rol es obligatorio")
-    Rol rol
+    Rol rol,
+
+    @Size(max = 255, message = "La dirección no debe superar los 255 caracteres")
+    String direccion,
+
+    Double latitud,
+
+    Double longitud
 ){}

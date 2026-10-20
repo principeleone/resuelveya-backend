@@ -10,6 +10,10 @@ public record UsuarioResponseDTO(
         String fotoUrl,
         String ciudad,
         String codigoUbigeo,
-        Rol rol
+        Rol rol,
+        String direccion,
+        Double latitud,
+        Double longitud,
+        Double calificacionPromedio
 ) {
 }

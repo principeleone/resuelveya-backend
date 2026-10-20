@@ -46,6 +46,18 @@ public class Usuario {
     @Column(name = "foto_url")
     private String fotoUrl;
 
+    @Column(length = 255)
+    private String direccion;
+
+    @Column(name = "latitud")
+    private Double latitud;
+
+    @Column(name = "longitud")
+    private Double longitud;
+
+    @Column(name = "calificacion_promedio")
+    private Double calificacionPromedio = 0.0;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -55,6 +67,7 @@ public class Usuario {
         this.telefono = telefono;
         this.password = password;
         this.rol = rol;
+        this.calificacionPromedio = 0.0;
         this.createdAt = LocalDateTime.now();
     }
 }

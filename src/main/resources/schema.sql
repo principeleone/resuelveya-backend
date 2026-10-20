@@ -19,15 +19,17 @@ CREATE TABLE IF NOT EXISTS usuario (
     codigo_ubigeo VARCHAR(10),
     rol VARCHAR(20) NOT NULL,
     foto_url VARCHAR(255),
+    direccion VARCHAR(255),
+    latitud DOUBLE,
+    longitud DOUBLE,
+    calificacion_promedio DOUBLE DEFAULT 0.0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 -- 3. Tabla Separada Cliente (Herencia JOINED)
 CREATE TABLE IF NOT EXISTS cliente (
     usuario_id BIGINT PRIMARY KEY,
-    direccion VARCHAR(255),
-    latitud DOUBLE,
-    longitud DOUBLE,
+    puntos_acumulados INT DEFAULT 0,
     CONSTRAINT fk_cliente_usuario FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE CASCADE
 );
 
@@ -37,7 +39,6 @@ CREATE TABLE IF NOT EXISTS tecnico (
     especialidad_id BIGINT,
     anios_experiencia INT DEFAULT 0,
     validacion BOOLEAN DEFAULT FALSE,
-    calificacion_promedio DOUBLE DEFAULT 0.0,
     yape_numero VARCHAR(20),
     plin_numero VARCHAR(20),
     presentacion VARCHAR(1000),
@@ -98,8 +99,8 @@ CREATE TABLE IF NOT EXISTS solicitud_servicio (
 );
 
 -- Sincronización retroactiva: asegurar filas hijas para usuarios existentes
-INSERT IGNORE INTO cliente (usuario_id)
-SELECT id FROM usuario WHERE rol = 'CLIENTE';
+INSERT IGNORE INTO cliente (usuario_id, puntos_acumulados)
+SELECT id, 0 FROM usuario WHERE rol = 'CLIENTE';
 
-INSERT IGNORE INTO tecnico (usuario_id, anios_experiencia, calificacion_promedio, validacion)
-SELECT id, 0, 0.0, FALSE FROM usuario WHERE rol = 'TECNICO';
+INSERT IGNORE INTO tecnico (usuario_id, anios_experiencia, validacion)
+SELECT id, 0, FALSE FROM usuario WHERE rol = 'TECNICO';
