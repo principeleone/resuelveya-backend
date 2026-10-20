@@ -22,7 +22,7 @@ public interface TecnicoRepository extends JpaRepository<Tecnico, Long> {
     List<Tecnico> findByEspecialidadId(Long especialidadId);
 
     @Modifying
-    @Query(value = "INSERT IGNORE INTO tecnico (usuario_id, anios_experiencia, calificacion_promedio) VALUES (:usuarioId, 0, 0.0)", nativeQuery = true)
+    @Query(value = "INSERT IGNORE INTO tecnico (usuario_id, anios_experiencia) VALUES (:usuarioId, 0)", nativeQuery = true)
     void registrarFilaTecnicoSiNoExiste(@Param("usuarioId") Long usuarioId);
 
     @Query("""
