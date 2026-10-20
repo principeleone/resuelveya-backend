@@ -69,6 +69,15 @@ public class SolicitudServicioController {
         return ResponseEntity.ok(solicitudServicioService.aceptarSolicitud(email, id));
     }
 
+    @PatchMapping("/{id}/iniciar")
+    public ResponseEntity<SolicitudResponseDto> iniciarSolicitud(
+            Authentication authentication,
+            @PathVariable Long id
+    ) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(solicitudServicioService.iniciarSolicitud(email, id));
+    }
+
     @PatchMapping("/{id}/rechazar")
     public ResponseEntity<SolicitudResponseDto> rechazarSolicitud(
             Authentication authentication,

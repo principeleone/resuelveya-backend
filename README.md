@@ -60,7 +60,52 @@ Permite el registro público seleccionando el rol (`CLIENTE` o `TECNICO`).
 
 ---
 
-### 1.2. Iniciar sesión (Login)
+### 1.2. Registro con Firebase (App Móvil)
+Permite registrar un usuario en MySQL autenticado previamente mediante Firebase Auth. No requiere contraseña (gestionada por Firebase).
+- **Método:** `POST`
+- **Ruta:** `/api/v1/auth/firebase-register`
+- **Permisos:** Público (Sin autenticación)
+
+**Body (Request):**
+```json
+{
+  "nombre": "Carlos Gómez",
+  "correo": "carlos@ejemplo.com",
+  "telefono": "987654321",
+  "direccion": "Av. Las Flores 123",
+  "rol": "CLIENTE"
+}
+```
+> **Detalle de campos:**
+> - `nombre`: **Obligatorio** (máx. 100 caracteres).
+> - `correo` (o `email`): **Obligatorio** (válido, máx. 100 caracteres).
+> - `telefono`: Opcional / nullable (máx. 20 caracteres).
+> - `direccion`: Opcional (máx. 255 caracteres).
+> - `rol`: **Obligatorio** (`CLIENTE` o `TECNICO`).
+> - Campos adicionales opcionales: `ciudad`, `latitud`, `longitud`, `fotoUrl`.
+
+**Response (201 Created):**
+```json
+{
+  "id": 1,
+  "nombre": "Carlos Gómez",
+  "email": "carlos@ejemplo.com",
+  "correo": "carlos@ejemplo.com",
+  "telefono": "987654321",
+  "fotoUrl": null,
+  "ciudad": null,
+  "codigoUbigeo": null,
+  "rol": "CLIENTE",
+  "direccion": "Av. Las Flores 123",
+  "latitud": null,
+  "longitud": null,
+  "calificacionPromedio": 0.0
+}
+```
+
+---
+
+### 1.3. Iniciar sesión (Login)
 - **Método:** `POST`
 - **Ruta:** `/api/v1/auth/login`
 - **Permisos:** Público (Sin autenticación)
@@ -86,7 +131,7 @@ Permite el registro público seleccionando el rol (`CLIENTE` o `TECNICO`).
 
 ---
 
-### 1.3. Iniciar sesión con Firebase (App Móvil)
+### 1.4. Iniciar sesión con Firebase (App Móvil)
 Permite a la app móvil autenticarse usando Firebase Auth (Google Sign-In, Email, etc.) y obtener un token JWT de ResuelveYa.
 Si el usuario no existe en la base de datos, se registra automáticamente con el rol indicado (`CLIENTE` por defecto).
 - **Método:** `POST`
@@ -572,6 +617,18 @@ Permite a usuarios registrados ver datos de contacto (teléfono, email), método
 
 ## 📲 9. Solicitudes de Servicio (Móvil / Web)
 
+### Flujo de Estados del Servicio
+| Endpoint | Método | Rol Permitido | Estado resultante en BD | Descripción |
+|---|---|---|---|---|
+| `/api/v1/solicitudes` | `POST` | `ROLE_CLIENTE` | `PENDIENTE` | Cliente crea la solicitud inicial |
+| `/api/v1/solicitudes/{id}/aceptar` | `PATCH` | `ROLE_TECNICO` | `ACEPTADA` | Técnico asignado acepta la solicitud |
+| `/api/v1/solicitudes/{id}/iniciar` | `PATCH` | `ROLE_TECNICO` | `EN_PROCESO` | Técnico asignado inicia el trabajo |
+| `/api/v1/solicitudes/{id}/rechazar` | `PATCH` | `ROLE_TECNICO` | `RECHAZADA` | Técnico asignado rechaza la solicitud |
+| `/api/v1/solicitudes/{id}/cancelar` | `PATCH` | `ROLE_CLIENTE` | `CANCELADA` | Cliente solicitante cancela la solicitud |
+| `/api/v1/solicitudes/{id}/completar` | `PATCH` | `ROLE_CLIENTE`, `ROLE_TECNICO` | `COMPLETADA` | Marca el servicio como finalizado |
+
+---
+
 ### 9.1. Solicitar un servicio
 Permite a un cliente solicitar un servicio a un técnico.
 - **Método:** `POST`
@@ -616,13 +673,22 @@ Permite a un cliente solicitar un servicio a un técnico.
 ---
 
 ### 9.5. Aceptar solicitud (Técnico / Proveedor)
+Permite al técnico asignado aceptar una solicitud pendiente (`PENDIENTE` -> `ACEPTADA`).
 - **Método:** `PATCH`
 - **Ruta:** `/api/v1/solicitudes/{id}/aceptar`
 - **Permisos:** Requiere rol `TECNICO` (solo el técnico asignado)
 
 ---
 
-### 9.6. Rechazar solicitud (Técnico / Proveedor)
+### 9.6. Iniciar atención / servicio (Técnico / Proveedor)
+Permite al técnico asignado cambiar el estado de la solicitud a en proceso (`ACEPTADA` -> `EN_PROCESO`).
+- **Método:** `PATCH`
+- **Ruta:** `/api/v1/solicitudes/{id}/iniciar`
+- **Permisos:** Requiere rol `TECNICO` (solo el técnico asignado)
+
+---
+
+### 9.7. Rechazar solicitud (Técnico / Proveedor)
 - **Método:** `PATCH`
 - **Ruta:** `/api/v1/solicitudes/{id}/rechazar`
 - **Permisos:** Requiere rol `TECNICO` (solo el técnico asignado)
@@ -636,14 +702,15 @@ Permite a un cliente solicitar un servicio a un técnico.
 
 ---
 
-### 9.7. Cancelar solicitud (Cliente)
+### 9.8. Cancelar solicitud (Cliente)
 - **Método:** `PATCH`
 - **Ruta:** `/api/v1/solicitudes/{id}/cancelar`
 - **Permisos:** Requiere rol `CLIENTE` (solo el cliente solicitante)
 
 ---
 
-### 9.8. Completar / Finalizar servicio
+### 9.9. Completar / Finalizar servicio
+Marca el servicio como finalizado (`ACEPTADA` o `EN_PROCESO` -> `COMPLETADA`).
 - **Método:** `PATCH`
 - **Ruta:** `/api/v1/solicitudes/{id}/completar`
 - **Permisos:** Autenticado (Cliente o Técnico involucrado)
@@ -654,7 +721,10 @@ Permite a un cliente solicitar un servicio a un técnico.
 
 | Endpoint | Método | Rol Permitido |
 |---|---|---|
-| `/api/v1/auth/**` | POST | Público |
+| `/api/v1/auth/registro` | POST | Público |
+| `/api/v1/auth/firebase-register` | POST | Público |
+| `/api/v1/auth/login` | POST | Público |
+| `/api/v1/auth/firebase-login` | POST | Público |
 | `/api/v1/public/**` | GET | Público |
 | `/api/v1/categorias/**` | GET | Público |
 | `/api/v1/categorias/**` | POST, PUT, DELETE | `ROLE_ADMIN` |
@@ -670,6 +740,7 @@ Permite a un cliente solicitar un servicio a un técnico.
 | `/api/v1/solicitudes/cliente/**` | GET | `ROLE_CLIENTE` |
 | `/api/v1/solicitudes/tecnico/**` | GET | `ROLE_TECNICO` |
 | `/api/v1/solicitudes/{id}/aceptar` | PATCH | `ROLE_TECNICO` |
+| `/api/v1/solicitudes/{id}/iniciar` | PATCH | `ROLE_TECNICO` |
 | `/api/v1/solicitudes/{id}/rechazar` | PATCH | `ROLE_TECNICO` |
 | `/api/v1/solicitudes/{id}/cancelar` | PATCH | `ROLE_CLIENTE` |
 | `/api/v1/solicitudes/{id}/completar`| PATCH | `ROLE_CLIENTE`, `ROLE_TECNICO` |

@@ -3,6 +3,7 @@ package com.resuelveya.resuelve_api.security.api.controller;
 import com.resuelveya.resuelve_api.business.api.dto.usuario.UsuarioRequestDTO;
 import com.resuelveya.resuelve_api.business.api.dto.usuario.UsuarioResponseDTO;
 import com.resuelveya.resuelve_api.security.api.dto.FirebaseLoginRequestDto;
+import com.resuelveya.resuelve_api.security.api.dto.FirebaseRegisterRequestDto;
 import com.resuelveya.resuelve_api.security.api.dto.LoginRequestDto;
 import com.resuelveya.resuelve_api.security.api.dto.LoginResponseDto;
 import com.resuelveya.resuelve_api.security.domain.service.AuthService;
@@ -32,6 +33,19 @@ public class AuthController {
             UsuarioRequestDTO requestDto
     ) {
         UsuarioResponseDTO usuarioRegistrado = authService.registrar(requestDto);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(usuarioRegistrado);
+    }
+
+    @PostMapping("/firebase-register")
+    public ResponseEntity<UsuarioResponseDTO> firebaseRegister(
+            @Valid
+            @RequestBody
+            FirebaseRegisterRequestDto requestDto
+    ) {
+        UsuarioResponseDTO usuarioRegistrado = authService.registrarConFirebase(requestDto);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

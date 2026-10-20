@@ -179,6 +179,24 @@ public class SolicitudServicioServiceImpl implements SolicitudServicioService {
     }
 
     @Override
+    public SolicitudResponseDto iniciarSolicitud(String emailTecnico, Long solicitudId) {
+        Tecnico tecnico = obtenerTecnico(emailTecnico);
+        SolicitudServicio solicitud = obtenerSolicitudPorId(solicitudId);
+
+        if (!solicitud.getTecnico().getId().equals(tecnico.getId())) {
+            throw new OperacionNoPermitidaException("No tienes permisos para iniciar esta solicitud.");
+        }
+
+        if (solicitud.getEstado() != EstadoSolicitud.ACEPTADA) {
+            throw new OperacionNoPermitidaException("Solo se pueden iniciar solicitudes en estado ACEPTADA. Estado actual: " + solicitud.getEstado());
+        }
+
+        solicitud.setEstado(EstadoSolicitud.EN_PROCESO);
+        SolicitudServicio actualizada = solicitudServicioRepository.save(solicitud);
+        return solicitudServicioMapper.toResponseDto(actualizada);
+    }
+
+    @Override
     public SolicitudResponseDto rechazarSolicitud(String emailTecnico, Long solicitudId, RechazarSolicitudRequestDto requestDto) {
         Tecnico tecnico = obtenerTecnico(emailTecnico);
         SolicitudServicio solicitud = obtenerSolicitudPorId(solicitudId);
@@ -236,8 +254,8 @@ public class SolicitudServicioServiceImpl implements SolicitudServicioService {
             throw new OperacionNoPermitidaException("Solo las partes involucradas pueden marcar la solicitud como completada.");
         }
 
-        if (solicitud.getEstado() != EstadoSolicitud.ACEPTADA) {
-            throw new OperacionNoPermitidaException("Solo se puede completar una solicitud que esté ACEPTADA. Estado actual: " + solicitud.getEstado());
+        if (solicitud.getEstado() != EstadoSolicitud.ACEPTADA && solicitud.getEstado() != EstadoSolicitud.EN_PROCESO) {
+            throw new OperacionNoPermitidaException("Solo se puede completar una solicitud en estado ACEPTADA o EN_PROCESO. Estado actual: " + solicitud.getEstado());
         }
 
         solicitud.setEstado(EstadoSolicitud.COMPLETADA);

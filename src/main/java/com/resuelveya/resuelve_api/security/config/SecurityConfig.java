@@ -165,6 +165,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/solicitudes/cliente/**").hasRole("CLIENTE")
                         .requestMatchers("/api/v1/solicitudes/tecnico/**").hasRole("TECNICO")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/solicitudes/*/aceptar").hasRole("TECNICO")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/solicitudes/*/iniciar").hasRole("TECNICO")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/solicitudes/*/rechazar").hasRole("TECNICO")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/solicitudes/*/cancelar").hasRole("CLIENTE")
                         .requestMatchers("/api/v1/solicitudes/**").authenticated()

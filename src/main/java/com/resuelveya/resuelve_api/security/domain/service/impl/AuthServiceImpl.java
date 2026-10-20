@@ -12,6 +12,7 @@ import com.resuelveya.resuelve_api.business.data.repository.ClienteRepository;
 import com.resuelveya.resuelve_api.business.data.repository.TecnicoRepository;
 import com.resuelveya.resuelve_api.business.data.repository.UsuarioRepository;
 import com.resuelveya.resuelve_api.security.api.dto.FirebaseLoginRequestDto;
+import com.resuelveya.resuelve_api.security.api.dto.FirebaseRegisterRequestDto;
 import com.resuelveya.resuelve_api.security.api.dto.LoginRequestDto;
 import com.resuelveya.resuelve_api.security.api.dto.LoginResponseDto;
 import com.resuelveya.resuelve_api.security.domain.service.AuthService;
@@ -111,6 +112,85 @@ public class AuthServiceImpl implements AuthService {
                 admin.setEmail(username);
                 admin.setPassword(encodedPassword);
                 admin.setTelefono(telefono);
+                admin.setRol(Rol.ADMIN);
+                usuarioGuardado = usuarioRepository.saveAndFlush(admin);
+            }
+        }
+
+        return convertirAResponse(usuarioGuardado);
+    }
+
+    @Override
+    public UsuarioResponseDTO registrarConFirebase(FirebaseRegisterRequestDto requestDto) {
+        String username = normalizarEmail(requestDto.correo());
+
+        if (usuarioRepository.existsByEmailIgnoreCase(username)) {
+            throw new RecursoDuplicadoException("El correo ya está registrado");
+        }
+
+        String encodedPassword = passwordEncoder.encode(UUID.randomUUID().toString());
+        String nombre = requestDto.nombre().trim();
+        String telefono = requestDto.telefono() != null && !requestDto.telefono().isBlank() ? requestDto.telefono().trim() : null;
+        String direccion = requestDto.direccion() != null && !requestDto.direccion().isBlank() ? requestDto.direccion().trim() : null;
+        String ciudad = requestDto.ciudad() != null && !requestDto.ciudad().isBlank() ? requestDto.ciudad().trim() : null;
+        Double latitud = requestDto.latitud();
+        Double longitud = requestDto.longitud();
+        String fotoUrl = requestDto.fotoUrl();
+        Rol rol = requestDto.rol() != null ? requestDto.rol() : Rol.CLIENTE;
+
+        Usuario usuarioGuardado;
+
+        switch (rol) {
+            case TECNICO -> {
+                Tecnico tecnico = new Tecnico();
+                tecnico.setNombre(nombre);
+                tecnico.setEmail(username);
+                tecnico.setPassword(encodedPassword);
+                tecnico.setTelefono(telefono);
+                tecnico.setDireccion(direccion);
+                tecnico.setCiudad(ciudad);
+                tecnico.setLatitud(latitud);
+                tecnico.setLongitud(longitud);
+                tecnico.setFotoUrl(fotoUrl);
+                tecnico.setRol(Rol.TECNICO);
+                tecnico.setAniosExperiencia(0);
+                tecnico.setCalificacionPromedio(0.0);
+                tecnico.setPresentacion(null);
+                tecnico.setYapeNumero(null);
+                tecnico.setPlinNumero(null);
+                tecnico.setTitularPago(null);
+                tecnico.setEspecialidad(null);
+                usuarioGuardado = tecnicoRepository.saveAndFlush(tecnico);
+                tecnicoRepository.registrarFilaTecnicoSiNoExiste(usuarioGuardado.getId());
+            }
+            case CLIENTE -> {
+                Cliente cliente = new Cliente();
+                cliente.setNombre(nombre);
+                cliente.setEmail(username);
+                cliente.setPassword(encodedPassword);
+                cliente.setTelefono(telefono);
+                cliente.setDireccion(direccion);
+                cliente.setCiudad(ciudad);
+                cliente.setLatitud(latitud);
+                cliente.setLongitud(longitud);
+                cliente.setFotoUrl(fotoUrl);
+                cliente.setRol(Rol.CLIENTE);
+                cliente.setPuntosAcumulados(0);
+                cliente.setCalificacionPromedio(0.0);
+                usuarioGuardado = clienteRepository.saveAndFlush(cliente);
+                clienteRepository.registrarFilaClienteSiNoExiste(usuarioGuardado.getId());
+            }
+            default -> {
+                Usuario admin = new Usuario();
+                admin.setNombre(nombre);
+                admin.setEmail(username);
+                admin.setPassword(encodedPassword);
+                admin.setTelefono(telefono);
+                admin.setDireccion(direccion);
+                admin.setCiudad(ciudad);
+                admin.setLatitud(latitud);
+                admin.setLongitud(longitud);
+                admin.setFotoUrl(fotoUrl);
                 admin.setRol(Rol.ADMIN);
                 usuarioGuardado = usuarioRepository.saveAndFlush(admin);
             }
