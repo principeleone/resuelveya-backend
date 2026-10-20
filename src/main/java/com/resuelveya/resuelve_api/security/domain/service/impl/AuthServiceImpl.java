@@ -281,7 +281,11 @@ public class AuthServiceImpl implements AuthService {
                 usuario.getFotoUrl(),
                 usuario.getCiudad(),
                 usuario.getCodigoUbigeo(),
-                usuario.getRol()
+                usuario.getRol(),
+                usuario.getDireccion(),
+                usuario.getLatitud(),
+                usuario.getLongitud(),
+                usuario.getCalificacionPromedio()
         );
     }
 }
