@@ -74,6 +74,12 @@ public class UsuarioServiceImpl implements UsuarioService {
             case CLIENTE -> {
                 Cliente cliente = usuarioMapper.toCliente(request);
                 cliente.setPassword(encodedPassword);
+                if (cliente.getPuntosAcumulados() == null) {
+                    cliente.setPuntosAcumulados(0);
+                }
+                if (cliente.getCalificacionPromedio() == null) {
+                    cliente.setCalificacionPromedio(0.0);
+                }
                 usuario = clienteRepository.saveAndFlush(cliente);
                 clienteRepository.registrarFilaClienteSiNoExiste(usuario.getId());
             }

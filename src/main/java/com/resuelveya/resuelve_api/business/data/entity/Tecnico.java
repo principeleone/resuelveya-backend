@@ -26,9 +26,6 @@ public class Tecnico extends Usuario {
     @Column(name = "validacion")
     private Boolean validacion = false;
 
-    @Column(name = "calificacion_promedio")
-    private Double calificacionPromedio = 0.0;
-
     @Column(name = "yape_numero", length = 20)
     private String yapeNumero;
 
@@ -52,14 +49,14 @@ public class Tecnico extends Usuario {
         super();
         this.setRol(Rol.TECNICO);
         this.aniosExperiencia = 0;
-        this.calificacionPromedio = 0.0;
+        this.setCalificacionPromedio(0.0);
     }
 
     public Tecnico(String nombre, String email, String password, String telefono, Integer aniosExperiencia,
             Double calificacionPromedio, Categoria especialidad) {
         super(nombre, email, telefono, password, Rol.TECNICO);
         this.aniosExperiencia = aniosExperiencia != null ? aniosExperiencia : 0;
-        this.calificacionPromedio = calificacionPromedio != null ? calificacionPromedio : 0.0;
+        this.setCalificacionPromedio(calificacionPromedio != null ? calificacionPromedio : 0.0);
         this.especialidad = especialidad;
     }
 }

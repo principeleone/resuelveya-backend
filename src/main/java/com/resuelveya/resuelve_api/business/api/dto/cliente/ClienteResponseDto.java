@@ -17,4 +17,6 @@ public class ClienteResponseDto {
     private String direccion;
     private Double latitud;
     private Double longitud;
+    private Double calificacionPromedio;
+    private Integer puntosAcumulados;
 }

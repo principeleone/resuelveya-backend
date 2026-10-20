@@ -11,16 +11,14 @@ import lombok.Setter;
 @Entity
 @Table(name = "cliente")
 @PrimaryKeyJoinColumn(name = "usuario_id")
-@NoArgsConstructor
 @AllArgsConstructor
 public class Cliente extends Usuario {
 
-    @Column(name = "direccion", length = 255)
-    private String direccion;
+    @Column(name = "puntos_acumulados")
+    private Integer puntosAcumulados = 0;
 
-    @Column(name = "latitud")
-    private Double latitud;
-
-    @Column(name = "longitud")
-    private Double longitud;
+    public Cliente() {
+        super();
+        this.puntosAcumulados = 0;
+    }
 }

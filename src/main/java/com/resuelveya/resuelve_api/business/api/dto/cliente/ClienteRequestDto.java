@@ -26,4 +26,6 @@ public class ClienteRequestDto {
     private Double latitud;
 
     private Double longitud;
+
+    private Integer puntosAcumulados = 0;
 }

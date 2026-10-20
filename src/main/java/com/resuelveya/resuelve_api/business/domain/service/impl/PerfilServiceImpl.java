@@ -67,24 +67,21 @@ public class PerfilServiceImpl implements PerfilService {
         if (requestDto.fotoUrl() != null) {
             usuario.setFotoUrl(requestDto.fotoUrl().trim());
         }
+        if (requestDto.direccion() != null) {
+            usuario.setDireccion(requestDto.direccion().trim());
+        }
+        if (requestDto.latitud() != null) {
+            usuario.setLatitud(requestDto.latitud());
+        }
+        if (requestDto.longitud() != null) {
+            usuario.setLongitud(requestDto.longitud());
+        }
 
         Usuario actualizado = usuarioRepository.saveAndFlush(usuario);
 
         // Actualizar datos específicos de Cliente
         if (actualizado.getRol() == Rol.CLIENTE) {
             clienteRepository.registrarFilaClienteSiNoExiste(actualizado.getId());
-            clienteRepository.findById(actualizado.getId()).ifPresent(cliente -> {
-                if (requestDto.direccion() != null) {
-                    cliente.setDireccion(requestDto.direccion().trim());
-                }
-                if (requestDto.latitud() != null) {
-                    cliente.setLatitud(requestDto.latitud());
-                }
-                if (requestDto.longitud() != null) {
-                    cliente.setLongitud(requestDto.longitud());
-                }
-                clienteRepository.save(cliente);
-            });
         }
 
         // Actualizar datos específicos de Técnico
@@ -150,10 +147,13 @@ public class PerfilServiceImpl implements PerfilService {
                             t.getCiudad(),
                             t.getCodigoUbigeo(),
                             t.getRol(),
-                            null, null, null,
+                            t.getDireccion(),
+                            t.getLatitud(),
+                            t.getLongitud(),
+                            t.getCalificacionPromedio() != null ? t.getCalificacionPromedio() : 0.0,
+                            null,
                             t.getPresentacion(),
                             t.getAniosExperiencia(),
-                            t.getCalificacionPromedio(),
                             t.getYapeNumero(),
                             t.getPlinNumero(),
                             t.getTitularPago(),
@@ -178,7 +178,9 @@ public class PerfilServiceImpl implements PerfilService {
                             c.getDireccion(),
                             c.getLatitud(),
                             c.getLongitud(),
-                            null, null, null, null, null, null, null, null, null
+                            c.getCalificacionPromedio() != null ? c.getCalificacionPromedio() : 0.0,
+                            c.getPuntosAcumulados() != null ? c.getPuntosAcumulados() : 0,
+                            null, null, null, null, null, null, null, null
                     ))
                     .orElseGet(() -> crearPerfilBase(usuario));
         }
@@ -196,7 +198,11 @@ public class PerfilServiceImpl implements PerfilService {
                 usuario.getCiudad(),
                 usuario.getCodigoUbigeo(),
                 usuario.getRol(),
-                null, null, null, null, null, null, null, null, null, null, null, null
+                usuario.getDireccion(),
+                usuario.getLatitud(),
+                usuario.getLongitud(),
+                usuario.getCalificacionPromedio() != null ? usuario.getCalificacionPromedio() : 0.0,
+                null, null, null, null, null, null, null, null, null
         );
     }
 }

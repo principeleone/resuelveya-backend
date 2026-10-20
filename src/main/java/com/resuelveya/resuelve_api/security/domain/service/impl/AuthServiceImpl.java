@@ -179,11 +179,19 @@ public class AuthServiceImpl implements AuthService {
             usuario.setCiudad(requestDto.ciudad().trim());
             modificado = true;
         }
-        if (usuario instanceof Cliente cliente && requestDto.direccion() != null && !requestDto.direccion().isBlank()) {
-            if (cliente.getDireccion() == null || cliente.getDireccion().isBlank()) {
-                cliente.setDireccion(requestDto.direccion().trim());
+        if (requestDto.direccion() != null && !requestDto.direccion().isBlank()) {
+            if (usuario.getDireccion() == null || usuario.getDireccion().isBlank()) {
+                usuario.setDireccion(requestDto.direccion().trim());
                 modificado = true;
             }
+        }
+        if (requestDto.latitud() != null && usuario.getLatitud() == null) {
+            usuario.setLatitud(requestDto.latitud());
+            modificado = true;
+        }
+        if (requestDto.longitud() != null && usuario.getLongitud() == null) {
+            usuario.setLongitud(requestDto.longitud());
+            modificado = true;
         }
 
         if (modificado) {
@@ -206,6 +214,8 @@ public class AuthServiceImpl implements AuthService {
         String telefono = requestDto.telefono() != null && !requestDto.telefono().isBlank() ? requestDto.telefono().trim() : null;
         String ciudad = requestDto.ciudad() != null && !requestDto.ciudad().isBlank() ? requestDto.ciudad().trim() : null;
         String direccion = requestDto.direccion() != null && !requestDto.direccion().isBlank() ? requestDto.direccion().trim() : null;
+        Double latitud = requestDto.latitud();
+        Double longitud = requestDto.longitud();
 
         return switch (rol) {
             case TECNICO -> {
@@ -216,6 +226,9 @@ public class AuthServiceImpl implements AuthService {
                 tecnico.setRol(Rol.TECNICO);
                 tecnico.setTelefono(telefono);
                 tecnico.setCiudad(ciudad);
+                tecnico.setDireccion(direccion);
+                tecnico.setLatitud(latitud);
+                tecnico.setLongitud(longitud);
                 tecnico.setFotoUrl(fotoUrl);
                 tecnico.setAniosExperiencia(0);
                 tecnico.setCalificacionPromedio(0.0);
@@ -232,7 +245,11 @@ public class AuthServiceImpl implements AuthService {
                 cliente.setTelefono(telefono);
                 cliente.setCiudad(ciudad);
                 cliente.setDireccion(direccion);
+                cliente.setLatitud(latitud);
+                cliente.setLongitud(longitud);
                 cliente.setFotoUrl(fotoUrl);
+                cliente.setPuntosAcumulados(0);
+                cliente.setCalificacionPromedio(0.0);
                 Cliente guardado = clienteRepository.saveAndFlush(cliente);
                 clienteRepository.registrarFilaClienteSiNoExiste(guardado.getId());
                 yield guardado;

@@ -11,14 +11,15 @@ public record PerfilResponseDto(
         String ciudad,
         String codigoUbigeo,
         Rol rol,
-        // Campos Cliente
         String direccion,
         Double latitud,
         Double longitud,
+        Double calificacionPromedio,
+        // Campos Cliente
+        Integer puntosAcumulados,
         // Campos Técnico
         String presentacion,
         Integer aniosExperiencia,
-        Double calificacionPromedio,
         String yapeNumero,
         String plinNumero,
         String titularPago,

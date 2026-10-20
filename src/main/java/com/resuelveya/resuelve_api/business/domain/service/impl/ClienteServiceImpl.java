@@ -45,6 +45,12 @@ public class ClienteServiceImpl implements ClienteService {
     public ClienteResponseDto crear(ClienteRequestDto requestDto) {
         Cliente cliente = clienteMapper.toEntity(requestDto);
         cliente.setRol(Rol.CLIENTE);
+        if (cliente.getPuntosAcumulados() == null) {
+            cliente.setPuntosAcumulados(0);
+        }
+        if (cliente.getCalificacionPromedio() == null) {
+            cliente.setCalificacionPromedio(0.0);
+        }
 
         // Requerimiento T1: Uso de saveAndFlush para sincronización inmediata con la BD
         Cliente guardado = clienteRepository.saveAndFlush(cliente);

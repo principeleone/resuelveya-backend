@@ -20,7 +20,7 @@ public record ActualizarPerfilRequestDto(
         @Size(max = 10, message = "El código ubigeo no debe superar los 10 caracteres")
         String codigoUbigeo,
 
-        // Campos específicos de Cliente
+        // Ubicación (común para Cliente y Técnico)
         @Size(max = 255, message = "La dirección no debe superar los 255 caracteres")
         String direccion,
 
